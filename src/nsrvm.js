@@ -198,7 +198,7 @@ class NSRVM {
 
         break
 
-      case 'getPublicAPI':
+      case 'getServicesList':
         if (NSRVM.checkPermissions(service, 'nsrvm')) {
           return this.getServicesList()
         }
