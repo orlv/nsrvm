@@ -1,0 +1,17 @@
+{
+  "services": {
+    "test1": {
+      "name": "test1",
+      "apiPort": 5001,
+      "allowedAPI": [
+        "nsrvm",
+        "test2"
+      ]
+    },
+    "test2": {
+      "name": "test2",
+      "apiPort": 5002,
+      "allowedAPI": []
+    }
+  }
+}
