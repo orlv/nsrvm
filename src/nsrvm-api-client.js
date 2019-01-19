@@ -62,7 +62,7 @@ class NSRVMApiClient {
         const request = this.requests[reqId]
 
         if (request !== undefined) {
-          console.log(`[NSRVM] Request timeout ${reqId} ${request.date}`)
+          console.log(`Request timeout ${reqId} ${request.date}`)
           delete this.requests[reqId]
           request.resolve(undefined)
         }

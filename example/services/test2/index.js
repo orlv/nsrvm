@@ -5,11 +5,11 @@ const ApiClient = require('../../../src/nsrvm-api-client')
 const SERVICE_NAME = 'TestService2'
 
 async function testService () {
-  console.log(`[NSRVM] ${SERVICE_NAME} started`)
+  console.log(`${SERVICE_NAME} started`)
 
   const api = new ApiClient({
     onMessage: msg => {
-      console.log(`[NSRVM] ${SERVICE_NAME} message.`, msg)
+      console.log(`${SERVICE_NAME} message.`, msg)
 
       switch (msg.cmd) {
         default:
@@ -21,11 +21,11 @@ async function testService () {
   let i = 0
 
   setInterval(() => {
-    console.log(`[NSRVM] ${SERVICE_NAME}. Iteration #${++i}`)
+    console.log(`${SERVICE_NAME}. Iteration #${++i}`)
   }, 2000)
 
   process.on('SIGINT', async () => {
-    console.log(`[NSRVM] ${SERVICE_NAME}: Caught interrupt signal. Exit`)
+    console.log(`${SERVICE_NAME}: Caught interrupt signal. Exit`)
     process.exit(0)
   })
 
@@ -33,7 +33,7 @@ async function testService () {
 
   const config = await api.request({ cmd: 'getConfig' })
 
-  console.log(`[NSRVM] ${SERVICE_NAME}: config received`, config)
+  console.log(`${SERVICE_NAME}: config received`, config)
 }
 
 testService().catch(e => {
