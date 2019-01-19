@@ -270,7 +270,7 @@ class NSRVM {
     const serviceConfig = this.config.services[serviceName]
 
     if (serviceConfig !== undefined) {
-      const service = this.services(serviceName)
+      const service = this.services[serviceName]
 
       if (service === undefined || service.dead) {
         await this.startService(serviceConfig)
