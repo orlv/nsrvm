@@ -210,7 +210,7 @@ class NSRVM {
   /**
    * getServicesList
    * @param {string} serviceName
-   * @returns {{serviceName: string, apiPort: number, apiKey: string}}
+   * @returns {{serviceName: string, apiPort: number|null, apiKey: string}}
    */
   getApiKeyQuery (serviceName) {
     const apiKey = this.apiKeys[serviceName]
@@ -218,6 +218,7 @@ class NSRVM {
 
     if (apiKey === undefined || serviceConfig === undefined) {
       console.log(`[NSRVM] API key or config for ${serviceName} not found`)
+      return { serviceName: serviceName, apiPort: null, apiKey: '' }
     }
 
     return { serviceName: serviceName, apiPort: serviceConfig.apiPort, apiKey: apiKey }
