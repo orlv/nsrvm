@@ -136,7 +136,7 @@ class NsrvmService {
       api.every(method => typeof method === 'object' && method !== null &&
         Object.keys(method).length === 2 &&
         typeof method.name === 'string' && method.name.length > 0 && method.name.length <= 32 &&
-        typeof method.description === 'string' && method.name.description <= 128
+        typeof method.description === 'string' && method.description.length <= 128
       )
   }
 
