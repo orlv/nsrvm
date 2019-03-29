@@ -74,7 +74,11 @@ class NsrvmService {
           resolve(true)
         })
 
-        this.process.kill('SIGINT')
+        if (process.platform === 'win32') {
+          this.process.send('SIGINT')
+        } else {
+          this.process.kill('SIGINT')
+        }
       }
     })
   }
@@ -96,6 +100,10 @@ class NsrvmService {
 
         case 'setPublicApi':
           this.setPublicApi(msg.api)
+          break
+
+        case 'exit':
+          this.nsrvm.stopService(this.config.name)
           break
 
         default:

@@ -1,13 +1,13 @@
 'use strict'
 
-const ApiClient = require('../../../src/nsrvm-api-client')
+const NSRVMApiClient = require('../../../src/nsrvm-api-client')
 
 const SERVICE_NAME = 'TestService2'
 
 async function testService () {
   console.log(`${SERVICE_NAME} started`)
 
-  const api = new ApiClient({
+  const nsrvmAPI = new NSRVMApiClient({
     onMessage: msg => {
       console.log(`${SERVICE_NAME} message.`, msg)
 
@@ -22,7 +22,13 @@ async function testService () {
 
   setInterval(() => {
     console.log(`${SERVICE_NAME}. Iteration #${++i}`)
-  }, 2000)
+    process.send({ cmd: 'test' })
+
+    if (i >= 3) {
+      console.log(`${SERVICE_NAME}. Exit failure test..`)
+      process.exit(2)
+    }
+  }, 1000)
 
   process.on('SIGINT', async () => {
     console.log(`${SERVICE_NAME}: Caught interrupt signal. Exit`)
@@ -31,7 +37,7 @@ async function testService () {
 
   process.send({ cmd: 'setPublicApi', api: [{ method: 'test2', description: 'Test method' }] })
 
-  const config = await api.request({ cmd: 'getConfig' })
+  const config = await nsrvmAPI.request({ cmd: 'getConfig' })
 
   console.log(`${SERVICE_NAME}: config received`, config)
 }

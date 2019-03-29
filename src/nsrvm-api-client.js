@@ -44,6 +44,10 @@ class NSRVMApiClient {
         clearTimeout(request.timeoutId)
         request.resolve(msg)
       }
+    } else if (typeof msg === 'string') {
+      if (msg === 'SIGINT') {
+        process.emit('SIGINT')
+      }
     } else {
       this.onMessage(msg)
     }
