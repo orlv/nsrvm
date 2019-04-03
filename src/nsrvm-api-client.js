@@ -74,7 +74,8 @@ class NSRVMApiClient {
 
       this.requests[reqId] = {
         resolve: resolve,
-        timeoutId: timeoutId
+        timeoutId: timeoutId,
+        date: Date.now()
       }
 
       process.send(msg)

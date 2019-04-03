@@ -24,6 +24,7 @@ class NsrvmService {
     this.servicePath = path.resolve(servicesPath, config.name)
     this.config = config
     this.dead = false
+    this.process = null
     this.restartTimeoutId = null
     this.api = []
 
@@ -39,6 +40,7 @@ class NsrvmService {
 
     this.dead = true
     this.process.removeAllListeners()
+    this.process = null
 
     if (code !== 0) {
       console.log(`[NSRVM] Pending restart ${this.config.name} in ${RESTART_TIMEOUT / 1000} seconds`)
@@ -56,7 +58,9 @@ class NsrvmService {
     clearTimeout(this.restartTimeoutId)
 
     return new Promise(resolve => {
-      if (this.dead) {
+      if (this.dead || !this.process) {
+        this.process = null
+        this.dead = true
         resolve(true)
       } else {
         this.process.removeAllListeners()
@@ -71,6 +75,7 @@ class NsrvmService {
           this.dead = true
           clearTimeout(killTimeoutId)
           this.process.removeAllListeners()
+          this.process = null
           resolve(true)
         })
 
@@ -118,7 +123,7 @@ class NsrvmService {
    * @param {number} reqId
    */
   reply (res, reqId) {
-    if (!this.dead && typeof res === 'object' && res !== null) {
+    if (!this.dead && this.process && typeof res === 'object' && res !== null) {
       res._reqId = reqId
       this.process.send(res)
     }
@@ -128,10 +133,13 @@ class NsrvmService {
    * start
    */
   start () {
-    this.process = fork(this.servicePath)
+    if (!this.process) {
+      this.dead = false
+      this.process = fork(this.servicePath)
 
-    this.process.on('exit', this.onExit.bind(this))
-    this.process.on('message', this.onMessage.bind(this))
+      this.process.on('exit', this.onExit.bind(this))
+      this.process.on('message', this.onMessage.bind(this))
+    }
   }
 
   /**
