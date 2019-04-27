@@ -135,7 +135,8 @@ class NsrvmService {
   start () {
     if (!this.process) {
       this.dead = false
-      this.process = fork(this.servicePath)
+      // noinspection JSCheckFunctionSignatures
+      this.process = fork(this.servicePath, { windowsHide: true })
 
       this.process.on('exit', this.onExit.bind(this))
       this.process.on('message', this.onMessage.bind(this))
