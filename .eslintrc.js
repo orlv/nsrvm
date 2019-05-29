@@ -10,7 +10,8 @@ module.exports = {
   },
 
   extends: [
-    'plugin:vue/recommended'
+    'plugin:vue/recommended',
+    'plugin:jsdoc/recommended'
   ],
 
   'env': {
@@ -230,5 +231,10 @@ module.exports = {
     'standard/computed-property-even-spacing': ['error', 'even'],
     'standard/no-callback-literal': 'error',
     'standard/object-curly-even-spacing': ['error', 'either'],
+
+    'jsdoc/require-param-description': 0,
+    'jsdoc/require-returns-description': 0,
+    'jsdoc/newline-after-description': 0,
+    'jsdoc/no-undefined-types': 0
   }
 }

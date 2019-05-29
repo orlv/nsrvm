@@ -4,6 +4,9 @@ const NSRVMApiClient = require('../../../src/nsrvm-api-client')
 
 const SERVICE_NAME = 'TestService2'
 
+/**
+ * testService
+ */
 async function testService () {
   console.log(`${SERVICE_NAME} started`)
 

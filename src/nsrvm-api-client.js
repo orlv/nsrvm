@@ -5,7 +5,7 @@ class NSRVMApiClient {
    * NSRVMApiClient
    * @param {object} [parameters]
    * @param {number} [parameters.timeout] - send timeout
-   * @param {function} [parameters.onMessage]
+   * @param {Function} [parameters.onMessage]
    */
   constructor (parameters) {
     const { timeout, onMessage } = parameters || {}
