@@ -14,7 +14,6 @@ const STOP_TIMEOUT = 5000
 
 class NsrvmService {
   /**
-   * NsrvmService
    * @param {NSRVM} nsrvm
    * @param {string} servicesPath
    * @param {ServiceConfig} config
@@ -32,8 +31,7 @@ class NsrvmService {
   }
 
   /**
-   * onExit
-   * @param code
+   * @param {number} code
    */
   onExit (code) {
     console.log(`[NSRVM] Service ${this.config.name} exited with code ${code}`)
@@ -51,7 +49,6 @@ class NsrvmService {
   }
 
   /**
-   * stop
    * @returns {Promise<any>}
    */
   stop () {
@@ -89,8 +86,8 @@ class NsrvmService {
   }
 
   /**
-   * onMessage
    * @param {object} msg
+   * @returns {Promise<void>}
    */
   async onMessage (msg) {
     if (!this.dead && typeof msg === 'object' && msg !== null) {
@@ -118,7 +115,6 @@ class NsrvmService {
   }
 
   /**
-   * reply
    * @param {object|undefined} res
    * @param {number} reqId
    */
@@ -130,7 +126,7 @@ class NsrvmService {
   }
 
   /**
-   * start
+   * start service
    */
   start () {
     if (!this.process) {
@@ -144,7 +140,6 @@ class NsrvmService {
   }
 
   /**
-   * validateAPI
    * @param {NSRVMServiceAPIMethod[]} api
    * @returns {boolean}
    */
@@ -158,7 +153,6 @@ class NsrvmService {
   }
 
   /**
-   * setPublicApi
    * @param {NSRVMServiceAPIMethod[]} api
    */
   setPublicApi (api) {

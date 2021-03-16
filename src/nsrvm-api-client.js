@@ -2,7 +2,6 @@
 
 class NSRVMApiClient {
   /**
-   * NSRVMApiClient
    * @param {object} [parameters]
    * @param {number} [parameters.timeout] - send timeout
    * @param {Function} [parameters.onMessage]
@@ -32,14 +31,13 @@ class NSRVMApiClient {
   }
 
   /**
-   * onMessage
    * @param {object} msg
    */
   onMsg (msg) {
     if (typeof msg === 'object' && msg !== null && typeof msg._reqId === 'number') {
       const request = this.requests[msg._reqId]
 
-      if (request !== undefined) {
+      if (request) {
         delete this.requests[msg._reqId]
         clearTimeout(request.timeoutId)
         request.resolve(msg)
@@ -54,7 +52,6 @@ class NSRVMApiClient {
   }
 
   /**
-   * request
    * @param {object} msg
    * @returns {Promise<any>}
    */
@@ -65,10 +62,10 @@ class NSRVMApiClient {
       const timeoutId = setTimeout(() => {
         const request = this.requests[reqId]
 
-        if (request !== undefined) {
+        if (request) {
           console.log(`Request timeout ${reqId} ${request.date}`)
           delete this.requests[reqId]
-          request.resolve(undefined)
+          request.resolve()
         }
       }, this.timeout)
 

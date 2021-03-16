@@ -1,9 +1,7 @@
 'use strict'
 
 const path = require('path')
-const util = require('util')
 const fs = require('fs')
-const readFile = util.promisify(fs.readFile)
 const crypto = require('crypto')
 const Service = require('./nsrvm-service')
 
@@ -11,14 +9,13 @@ const SERVICES_CONFIG = 'services/services-config.json'
 
 /**
  * @typedef {object} ServiceConfig
- * @property {string} name
- * @property {number} apiPort
- * @property {string[]} allowedAPI
+ * @property {string} name - service name
+ * @property {number} apiPort - service port
+ * @property {string[]} allowedAPI - allowed services list
  */
 
 class NSRVM {
   /**
-   * NSRVM
    * @param {string} rootDir
    * @param {string} servicesDir
    * @param {string} [servicesConfigFilename]
@@ -32,6 +29,9 @@ class NSRVM {
     this.config = { services: {}, restartCmd: '' }
   }
 
+  /**
+   * @returns {Promise<void>}
+   */
   async init () {
     process.on('SIGINT', async () => {
       console.log('NSRVM SIGINT received')
@@ -65,13 +65,12 @@ class NSRVM {
   }
 
   /**
-   * loadConfig
    * @param {string} servicesConfigFilename
-   * @returns {Promise<*>}
+   * @returns {Promise<object>}
    */
   static async loadConfig (servicesConfigFilename) {
     try {
-      const config = JSON.parse(await readFile(servicesConfigFilename, { encoding: 'utf-8' }))
+      const config = JSON.parse(await fs.promises.readFile(servicesConfigFilename, { encoding: 'utf-8' }))
 
       console.log('[NSRVM] Loaded config:', config)
 
@@ -88,11 +87,10 @@ class NSRVM {
   }
 
   /**
-   * runServices
    * @returns {Promise<void>}
    */
   async runServices () {
-    // Find difference between this.services & this.config.services
+    // Find differences between this.services & this.config.services
     const stopping = Object.values(this.services)
       .filter(service => !(service.config.name in this.config.services) || (service.config.apiPort !== this.config.services[service.config.name].apiPort))
       .map(service => this.stopService(service.config.name))
@@ -118,7 +116,6 @@ class NSRVM {
   }
 
   /**
-   * stopService
    * @param {string} serviceName
    * @returns {Promise<void>}
    */
@@ -127,14 +124,13 @@ class NSRVM {
 
     const service = this.services[serviceName]
 
-    if (service !== undefined) {
+    if (service) {
       delete this.services[serviceName]
       await service.stop()
     }
   }
 
   /**
-   * startService
    * @param {ServiceConfig} serviceConfig
    * @returns {Promise<void>}
    */
@@ -143,7 +139,7 @@ class NSRVM {
 
     const prevService = this.services[serviceConfig.name]
 
-    if (prevService !== undefined) {
+    if (prevService) {
       delete this.services[serviceConfig.name]
       await prevService.stop()
     }
@@ -152,12 +148,12 @@ class NSRVM {
   }
 
   /**
-   * query
    * @param {NsrvmService} service
    * @param {object} msg
    * @param {string} msg.method
    * @param {string} [msg.serviceName]
    * @param {number} [msg._reqId]
+   * @returns {Promise<?object>}
    */
   async query (service, msg) {
     switch (msg.method) {
@@ -208,7 +204,6 @@ class NSRVM {
   }
 
   /**
-   * getServicesList
    * @param {string} serviceName
    * @returns {{serviceName: string, apiPort: number|null, apiKey: string}}
    */
@@ -216,16 +211,16 @@ class NSRVM {
     const apiKey = this.apiKeys[serviceName]
     const serviceConfig = this.config.services[serviceName]
 
-    if (apiKey === undefined || serviceConfig === undefined) {
+    if (!apiKey || !serviceConfig) {
       console.log(`[NSRVM] API key or config for ${serviceName} not found`)
-      return { serviceName: serviceName, apiPort: null, apiKey: '' }
+      return { serviceName, apiPort: null, apiKey: '' }
     }
 
-    return { serviceName: serviceName, apiPort: serviceConfig.apiPort, apiKey: apiKey }
+    return { serviceName, apiPort: serviceConfig.apiPort, apiKey }
   }
 
   /**
-   * getServicesList
+   * @returns {{services: Array<{serviceName: string, api: string[], status: boolean}>}}
    */
   getServicesList () {
     return {
@@ -234,16 +229,15 @@ class NSRVM {
           const service = this.services[serviceName]
 
           return {
-            serviceName: serviceName,
-            api: service !== undefined ? service.api : [],
-            status: service !== undefined
+            serviceName,
+            api: service ? service.api : [],
+            status: !!service
           }
         })
     }
   }
 
   /**
-   * restartServiceQuery
    * @param {string} serviceName
    * @returns {Promise<void>}
    */
@@ -252,7 +246,7 @@ class NSRVM {
 
     const serviceConfig = this.config.services[serviceName]
 
-    if (serviceConfig !== undefined) {
+    if (serviceConfig) {
       await this.startService(serviceConfig)
     } else {
       console.log(`[NSRVM] Service config not found`)
@@ -261,7 +255,6 @@ class NSRVM {
   }
 
   /**
-   * startServiceQuery
    * @param {string} serviceName
    * @returns {Promise<void>}
    */
@@ -270,17 +263,16 @@ class NSRVM {
 
     const serviceConfig = this.config.services[serviceName]
 
-    if (serviceConfig !== undefined) {
+    if (serviceConfig) {
       const service = this.services[serviceName]
 
-      if (service === undefined || service.dead) {
+      if (!service || service.dead) {
         await this.startService(serviceConfig)
       }
     }
   }
 
   /**
-   * restartServer
    * @returns {Promise<void>}
    */
   async restartServer () {
@@ -294,7 +286,6 @@ class NSRVM {
   }
 
   /**
-   * checkPermissions
    * @param {NsrvmService} service
    * @param {string} target
    * @returns {boolean}
