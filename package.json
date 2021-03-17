@@ -1,6 +1,6 @@
 {
   "name": "nsrvm",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "NodeJS Services Manager",
   "main": "src/index.js",
   "scripts": {
