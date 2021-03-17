@@ -9,9 +9,12 @@ const SERVICES_CONFIG = 'services/services-config.json'
 
 /**
  * @typedef {object} ServiceConfig
+ * @property {string} [parent] - parent service name
  * @property {string} name - service name
  * @property {number} apiPort - service port
  * @property {string[]} allowedAPI - allowed services list
+ * @property {number} [maxChilds=0] - maximum childs cnt
+ * @property {number} [fileName] - entry point
  */
 
 class NSRVM {
@@ -24,7 +27,7 @@ class NSRVM {
     this.servicesDir = servicesDir
     this.rootDir = rootDir
     this.servicesConfigFilename = path.resolve(rootDir, servicesConfigFilename)
-    this.services = {}
+    this.services = /** @type {object.<name, NsrvmService>} */ {}
     this.apiKeys = {}
     this.config = { services: {}, restartCmd: '' }
   }
@@ -39,7 +42,7 @@ class NSRVM {
     })
 
     this.watchConfig()
-    this.config = await NSRVM.loadConfig(this.servicesConfigFilename)
+    this.config = await this.loadConfig(this.servicesConfigFilename)
     this.generateAPIKeys()
     await this.runServices()
   }
@@ -54,9 +57,59 @@ class NSRVM {
   watchConfig () {
     fs.watchFile(this.servicesConfigFilename, async () => {
       console.log(`[NSRVM] Services config changed`)
-      this.config = await NSRVM.loadConfig(this.servicesConfigFilename)
+      this.config = await this.loadConfig(this.servicesConfigFilename)
       await this.runServices()
     })
+  }
+
+  /**
+   * @param {NsrvmService} parent
+   * @param {ServiceConfig[]} configs
+   */
+  async setChildServices (parent, configs) {
+    console.log(`[NSRVM] Set child services for '${parent.config.name}'`)
+
+    // Remove deleted configs
+    for (const oldConfig of parent.childs) {
+      if (!configs.some(newConfig => newConfig.name === oldConfig.name)) {
+        console.log(`[NSRVM] Remove service '${parent.config.name}.${oldConfig.name}'`)
+        delete this.configs.services[oldConfig.name]
+
+        // Remove permissions
+        const idx = parent.config.allowedAPI.findIndex(name => name === oldConfig.name)
+
+        if (idx !== -1) {
+          parent.config.allowedAPI.splice(idx, 1)
+        }
+      }
+    }
+
+    parent.childs = configs
+
+    for (const config of configs) {
+      // Skip if service with the same name started by other
+      const prevConfig = this.config.services[config.name]
+
+      if (prevConfig && prevConfig.parent !== parent.config.name) {
+        console.error(`[NSRVM] service ${config.name} already started by ${config.parent || 'NSRVM'}`)
+      } else {
+        console.log(`[NSRVM] Add service '${parent.config.name}.${config.name}'. Config:`, config)
+
+        config.parent = parent.config.name
+        this.patchConfig(config)
+
+        // Append new services (+refresh exiting configs)
+        this.config.services[config.name] = config
+
+        // Add permissions
+        if (!parent.config.allowedAPI.includes(config.name)) {
+          parent.config.allowedAPI.push(config.name)
+        }
+      }
+    }
+
+    // Start new services/stop deleted services
+    await this.runServices()
   }
 
   static validateConfig (config) {
@@ -68,13 +121,17 @@ class NSRVM {
    * @param {string} servicesConfigFilename
    * @returns {Promise<object>}
    */
-  static async loadConfig (servicesConfigFilename) {
+  async loadConfig (servicesConfigFilename) {
     try {
       const config = JSON.parse(await fs.promises.readFile(servicesConfigFilename, { encoding: 'utf-8' }))
 
       console.log('[NSRVM] Loaded config:', config)
 
       if (NSRVM.validateConfig(config)) {
+        for (const serviceConfig of Object.values(config.services)) {
+          this.patchConfig(serviceConfig)
+        }
+
         return config
       } else {
         console.log('[NSRVM] Bad config')
@@ -84,6 +141,15 @@ class NSRVM {
     }
 
     return { services: {}, restartCmd: '' }
+  }
+
+  /**
+   * @param {ServiceConfig} config
+   */
+  patchConfig (config) {
+    if (!('maxChilds' in config)) {
+      config.maxChilds = 0
+    }
   }
 
   /**
@@ -100,19 +166,28 @@ class NSRVM {
       await Promise.all(stopping)
     }
 
-    // Start services
-    const starting = Object.keys(this.config.services)
-      .filter(serviceName => !(serviceName in this.services) || this.services[serviceName].dead)
+    const toStart = []
 
-    starting.forEach(serviceName => {
-      if (!(serviceName in this.apiKeys)) {
-        this.apiKeys[serviceName] = crypto.randomBytes(16).toString('hex')
+    // Update configs
+    for (const config of Object.values(this.config.services)) {
+      const service = this.services[config.name]
+
+      if (service) {
+        service.config = config
       }
-    })
 
-    console.log(`[NSRVM] Starting ${starting.length} services..`)
+      if (!service || service.dead) {
+        toStart.push(config.name)
 
-    await Promise.all(starting.map(serviceName => this.startService(this.config.services[serviceName])))
+        if (!(config.name in this.apiKeys)) {
+          this.apiKeys[config.name] = crypto.randomBytes(16).toString('hex')
+        }
+      }
+    }
+
+    console.log(`[NSRVM] Starting ${toStart.length} services..`)
+
+    await Promise.all(toStart.map(serviceName => this.startService(this.config.services[serviceName])))
   }
 
   /**
@@ -144,7 +219,9 @@ class NSRVM {
       await prevService.stop()
     }
 
-    this.services[serviceConfig.name] = new Service(this, path.resolve(this.rootDir, this.servicesDir), serviceConfig)
+    const servicePath = path.resolve(this.rootDir, this.servicesDir, serviceConfig.fileName || serviceConfig.name)
+
+    this.services[serviceConfig.name] = new Service(this, servicePath, serviceConfig)
   }
 
   /**

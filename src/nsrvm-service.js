@@ -1,6 +1,5 @@
 'use strict'
 
-const path = require('path')
 const { fork } = require('child_process')
 
 const RESTART_TIMEOUT = 3000
@@ -15,17 +14,18 @@ const STOP_TIMEOUT = 5000
 class NsrvmService {
   /**
    * @param {NSRVM} nsrvm
-   * @param {string} servicesPath
+   * @param {string} path
    * @param {ServiceConfig} config
    */
-  constructor (nsrvm, servicesPath, config) {
+  constructor (nsrvm, path, config) {
     this.nsrvm = nsrvm
-    this.servicePath = path.resolve(servicesPath, config.name)
+    this.path = path
     this.config = config
     this.dead = false
     this.process = null
     this.restartTimeoutId = null
     this.api = []
+    this.childs = []
 
     this.start()
   }
@@ -90,27 +90,35 @@ class NsrvmService {
    * @returns {Promise<void>}
    */
   async onMessage (msg) {
-    if (!this.dead && typeof msg === 'object' && msg !== null) {
-      switch (msg.cmd) {
-        case 'getConfig':
-          this.reply({ config: this.config, apiKey: this.nsrvm.apiKeys[this.config.name] }, msg._reqId)
-          break
+    try {
+      if (!this.dead && typeof msg === 'object' && msg !== null) {
+        switch (msg.cmd) {
+          case 'getConfig':
+            this.reply({ config: this.config, apiKey: this.nsrvm.apiKeys[this.config.name] }, msg._reqId)
+            break
 
-        case 'api':
-          this.reply(await this.nsrvm.query(this, msg), msg._reqId)
-          break
+          case 'api':
+            this.reply(await this.nsrvm.query(this, msg), msg._reqId)
+            break
 
-        case 'setPublicApi':
-          this.setPublicApi(msg.api)
-          break
+          case 'setPublicApi':
+            this.setPublicApi(msg.api)
+            break
 
-        case 'exit':
-          this.nsrvm.stopService(this.config.name)
-          break
+          case 'exit':
+            await this.nsrvm.stopService(this.config.name)
+            break
 
-        default:
-          console.log(`[NSRVM] Unknown message from ${this.config.name}`, msg.cmd)
+          case 'setChildServices':
+            await this.setChildServices(msg)
+            break
+
+          default:
+            console.log(`[NSRVM] Unknown message from ${this.config.name}`, msg.cmd)
+        }
       }
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -132,7 +140,7 @@ class NsrvmService {
     if (!this.process) {
       this.dead = false
       // noinspection JSCheckFunctionSignatures
-      this.process = fork(this.servicePath, { windowsHide: true })
+      this.process = fork(this.path, { windowsHide: true })
 
       this.process.on('exit', this.onExit.bind(this))
       this.process.on('message', this.onMessage.bind(this))
@@ -158,6 +166,15 @@ class NsrvmService {
   setPublicApi (api) {
     if (NsrvmService.validateAPI(api)) {
       this.api = api
+    }
+  }
+
+  /**
+   * @param {{configs: ServiceConfig[]}} params
+   */
+  async setChildServices ({ configs }) {
+    if (Array.isArray(configs) && configs.length <= this.config.maxChilds) {
+      await this.nsrvm.setChildServices(this, configs)
     }
   }
 }
