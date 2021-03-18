@@ -25,9 +25,6 @@ class NsrvmService {
     this.process = null
     this.restartTimeoutId = null
     this.api = []
-    this.childs = []
-
-    this.start()
   }
 
   /**
