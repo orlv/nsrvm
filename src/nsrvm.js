@@ -284,6 +284,7 @@ class NSRVM {
       case 'restartService':
         if (NSRVM.checkPermissions(service, 'nsrvm')) {
           await this.restartServiceQuery(msg.serviceName)
+          return { status: true }
         }
 
         break
@@ -291,6 +292,7 @@ class NSRVM {
       case 'stopService':
         if (NSRVM.checkPermissions(service, 'nsrvm')) {
           await this.stopService(msg.serviceName)
+          return { status: true }
         }
 
         break
@@ -298,6 +300,7 @@ class NSRVM {
       case 'startService':
         if (NSRVM.checkPermissions(service, 'nsrvm')) {
           await this.startServiceQuery(msg.serviceName)
+          return { status: true }
         }
 
         break
