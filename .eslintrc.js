@@ -10,7 +10,6 @@ module.exports = {
   },
 
   extends: [
-    'plugin:vue/recommended',
     'plugin:jsdoc/recommended'
   ],
 
@@ -23,8 +22,7 @@ module.exports = {
     'import',
     'node',
     'promise',
-    'standard',
-    'vue'
+    'standard'
   ],
 
   'globals': {
@@ -34,22 +32,11 @@ module.exports = {
   },
 
   'rules': {
-    'vue/html-indent': 0,
-    'vue/singleline-html-element-content-newline': 0,
-    'vue/max-attributes-per-line': 0,
-    'vue/require-prop-types': 0,
-    'vue/html-closing-bracket-spacing': 0,
-    'vue/multiline-html-element-content-newline': 0,
     'padding-line-between-statements': [
       'error',
       { blankLine: 'always', prev: ['const', 'let', 'var', 'block-like', 'function'], next: '*' },
       { blankLine: 'always', prev: '*', next: ['const', 'block-like'] },
       { blankLine: 'any', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] }],
-    'vue/html-self-closing': 0,
-    'vue/html-closing-bracket-newline': ['error', {
-      'singleline': 'never',
-      'multiline': 'never'
-    }],
     'arrow-parens': 0,
     'accessor-pairs': 'error',
     'arrow-spacing': ['error', { 'before': true, 'after': true }],
