@@ -70,8 +70,8 @@ class NSRVMApiClient {
       }, this.timeout)
 
       this.requests[reqId] = {
-        resolve: resolve,
-        timeoutId: timeoutId,
+        resolve,
+        timeoutId,
         date: Date.now()
       }
 
