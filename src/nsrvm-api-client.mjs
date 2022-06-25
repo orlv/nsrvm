@@ -1,6 +1,4 @@
-'use strict'
-
-class NSRVMApiClient {
+export default class NSRVMApiClient {
   /**
    * @param {object} [parameters]
    * @param {number} [parameters.timeout] - send timeout
@@ -79,5 +77,3 @@ class NSRVMApiClient {
     })
   }
 }
-
-module.exports = NSRVMApiClient

@@ -1,8 +1,7 @@
-'use strict'
+// import { NSRVMApiClient } from 'nsrvm'
+import { NSRVMApiClient } from '../../../src/index.mjs'
 
-const NSRVMApiClient = require('../../../src/nsrvm-api-client')
-
-const SERVICE_NAME = 'TestService2'
+const SERVICE_NAME = 'TestService1'
 
 /**
  * testService
@@ -28,17 +27,19 @@ async function testService () {
     process.send({ cmd: 'test' })
 
     if (i >= 3) {
-      console.log(`${SERVICE_NAME}. Exit failure test..`)
-      process.exit(2)
+      console.log(`${SERVICE_NAME}. Graceful shutdown test..`)
+      process.send({ cmd: 'exit' })
     }
   }, 1000)
+
+  console.log('process.platform:', process.platform)
 
   process.on('SIGINT', async () => {
     console.log(`${SERVICE_NAME}: Caught interrupt signal. Exit`)
     process.exit(0)
   })
 
-  process.send({ cmd: 'setPublicApi', api: [{ method: 'test2', description: 'Test method' }] })
+  process.send({ cmd: 'setPublicApi', api: [{ method: 'test', description: 'Test method' }] })
 
   const config = await nsrvmAPI.request({ cmd: 'getConfig' })
 

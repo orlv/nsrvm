@@ -13,7 +13,6 @@ module.exports = {
   ignorePatterns: ['/tmp', '/temp', '/dist', 'node_modules'],
 
   extends: [
-    'plugin:vue/recommended',
     'plugin:jsdoc/recommended'
   ],
 
@@ -36,14 +35,6 @@ module.exports = {
   },
 
   'rules': {
-    'vue/html-indent': 0,
-    'vue/singleline-html-element-content-newline': 0,
-    'vue/max-attributes-per-line': 0,
-    'vue/require-prop-types': 0,
-    'vue/html-closing-bracket-spacing': 0,
-    'vue/multiline-html-element-content-newline': 0,
-    'vue/first-attribute-linebreak': 0,
-    'vue/multi-word-component-names': 0,
     'padding-line-between-statements': [
       'error',
       { blankLine: 'always', prev: ['const', 'let', 'var', 'block-like', 'function'], next: '*' },
@@ -51,11 +42,6 @@ module.exports = {
       { blankLine: 'any', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] },
       { blankLine: 'any', prev: 'case', next: 'case' }
     ],
-    'vue/html-self-closing': 0,
-    'vue/html-closing-bracket-newline': ['error', {
-      'singleline': 'never',
-      'multiline': 'never'
-    }],
     'arrow-parens': 0,
 
     'no-param-reassign': 'error',

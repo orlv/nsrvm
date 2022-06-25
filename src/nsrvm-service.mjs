@@ -1,6 +1,4 @@
-'use strict'
-
-const { fork } = require('child_process')
+import { fork } from 'child_process'
 
 const RESTART_TIMEOUT = 3000
 const STOP_TIMEOUT = 5000
@@ -11,7 +9,7 @@ const STOP_TIMEOUT = 5000
  * @property {string} description - length 0..128
  */
 
-class NsrvmService {
+export default class NsrvmService {
   /**
    * @param {NSRVM} nsrvm
    * @param {string} path
@@ -175,5 +173,3 @@ class NsrvmService {
     }
   }
 }
-
-module.exports = NsrvmService

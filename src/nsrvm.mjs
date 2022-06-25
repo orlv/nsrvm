@@ -1,9 +1,7 @@
-'use strict'
-
-const path = require('path')
-const fs = require('fs')
-const crypto = require('crypto')
-const Service = require('./nsrvm-service')
+import path from 'path'
+import fs from 'fs'
+import crypto from 'crypto'
+import Service from './nsrvm-service.mjs'
 
 const SERVICES_CONFIG = 'services/services-config.json'
 
@@ -11,13 +9,13 @@ const SERVICES_CONFIG = 'services/services-config.json'
  * @typedef {object} ServiceConfig
  * @property {string} [parent] - parent service name
  * @property {string} name - service name
+ * @property {string} [modulePath] - entry point
  * @property {number} apiPort - service port
  * @property {string[]} allowedAPI - allowed services list
  * @property {number} [maxChilds=0] - maximum childs cnt
- * @property {number} [fileName] - entry point
  */
 
-class NSRVM {
+export default class NSRVM {
   /**
    * @param {string} rootDir
    * @param {string} servicesDir
@@ -27,8 +25,8 @@ class NSRVM {
     this.servicesDir = servicesDir
     this.rootDir = rootDir
     this.servicesConfigFilename = path.resolve(rootDir, servicesConfigFilename)
-    this.services = /** @type {object.<name, NsrvmService>} */ {}
-    this.childs = /** @type {object.<name, ServiceConfig[]>} */ {}
+    this.services = /** @type {Object<name, NsrvmService>} */ {}
+    this.childs = /** @type {Object<name, ServiceConfig[]>} */ {}
     this.apiKeys = {}
     this.config = { services: {}, restartCmd: '' }
   }
@@ -239,6 +237,55 @@ class NSRVM {
 
   /**
    * @param {ServiceConfig} serviceConfig
+   * @returns {Promise<string>}
+   */
+  async resolveModulePath (serviceConfig) {
+    const name = serviceConfig.modulePath || serviceConfig.name
+
+    try {
+      const modulePath = path.resolve(this.rootDir, this.servicesDir, name)
+      const stat = await fs.promises.stat(modulePath)
+
+      if (stat.isDirectory()) {
+        try {
+          const modulePath = path.resolve(this.rootDir, this.servicesDir, name, 'index.mjs')
+          const stat = await fs.promises.stat(modulePath)
+
+          return stat.isFile() ? modulePath : ''
+        } catch {}
+
+        try {
+          const modulePath = path.resolve(this.rootDir, this.servicesDir, name, 'index.js')
+          const stat = await fs.promises.stat(modulePath)
+
+          return stat.isFile() ? modulePath : ''
+        } catch {}
+
+        return ''
+      } else {
+        return modulePath
+      }
+    } catch {}
+
+    try {
+      const modulePath = path.resolve(this.rootDir, this.servicesDir, `${name}.mjs`)
+      const stat = await fs.promises.stat(modulePath)
+
+      return stat.isFile() ? modulePath : ''
+    } catch {}
+
+    try {
+      const modulePath = path.resolve(this.rootDir, this.servicesDir, `${name}.js`)
+      const stat = await fs.promises.stat(modulePath)
+
+      return stat.isFile() ? modulePath : ''
+    } catch {}
+
+    return ''
+  }
+
+  /**
+   * @param {ServiceConfig} serviceConfig
    * @returns {Promise<void>}
    */
   async startService (serviceConfig) {
@@ -251,7 +298,13 @@ class NSRVM {
       await prevService.stop()
     }
 
-    const servicePath = path.resolve(this.rootDir, this.servicesDir, serviceConfig.fileName || serviceConfig.name)
+    const servicePath = await this.resolveModulePath(serviceConfig)
+
+    if (!servicePath) {
+      console.error(`Module ${serviceConfig.name} not found!`)
+      return
+    }
+
     const service = this.services[serviceConfig.name] = new Service(this, servicePath, serviceConfig)
     const childs = this.childs[serviceConfig.name]
 
@@ -412,5 +465,3 @@ class NSRVM {
     return service.config.allowedAPI.includes(target)
   }
 }
-
-module.exports = NSRVM
