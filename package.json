@@ -10,12 +10,12 @@
   "author": "Oleg Orlov",
   "license": "ISC",
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.1.3",
-    "eslint": "^8.18.0",
+    "@rushstack/eslint-patch": "^1.2.0",
+    "eslint": "^8.28.0",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-jsdoc": "^39.3.3",
-    "eslint-plugin-n": "^15.2.3",
-    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-jsdoc": "^39.6.2",
+    "eslint-plugin-n": "^15.5.1",
+    "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-standard": "^5.0.0"
   }
 }
