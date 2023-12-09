@@ -138,8 +138,23 @@ export default class NsrvmService {
   start () {
     if (!this.process) {
       this.dead = false
+
+      const options = {}
+
+      if (this.config.execPath) {
+        options.execPath = this.config.execPath
+      }
+
+      if (this.config.env) {
+        options.env = this.config.env
+      }
+
+      if (this.config.execArgv) {
+        options.execArgv = this.config.execArgv
+      }
+
       // noinspection JSCheckFunctionSignatures
-      this.process = fork(this.path, { windowsHide: true })
+      this.process = fork(this.path, options)
 
       this.process.on('exit', this.onExit.bind(this))
       this.process.on('message', this.onMessage.bind(this))
