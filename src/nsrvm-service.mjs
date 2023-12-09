@@ -98,18 +98,22 @@ export default class NsrvmService {
 
           case 'setPublicApi':
             this.setPublicApi(msg.api)
+            this.reply({}, msg._reqId)
             break
 
           case 'exit':
             await this.nsrvm.stopService(this.config.name)
+            this.reply({}, msg._reqId)
             break
 
           case 'setChildServices':
             await this.setChildServices(msg)
+            this.reply({}, msg._reqId)
             break
 
           default:
             console.log(`[NSRVM] Unknown message from ${this.config.name}`, msg.cmd)
+            this.reply({}, msg._reqId)
         }
       }
     } catch (e) {
