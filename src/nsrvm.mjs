@@ -88,7 +88,7 @@ export default class NSRVM {
     for (const oldConfig of childs) {
       if (!configs.some(newConfig => newConfig.name === oldConfig.name)) {
         console.log(`[NSRVM] Remove service '${parent.config.name}.${oldConfig.name}'`)
-        delete this.configs.services[oldConfig.name]
+        delete this.config.services[oldConfig.name]
 
         // Remove permissions
         const idx = parent.config.allowedAPI.findIndex(name => name === oldConfig.name)
