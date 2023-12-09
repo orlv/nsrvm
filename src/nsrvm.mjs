@@ -215,9 +215,10 @@ export default class NSRVM {
       }
     }
 
-    console.log(`[NSRVM] Starting ${toStart.length} services..`)
-
-    await Promise.all(toStart.map(serviceName => this.startService(this.config.services[serviceName])))
+    if (toStart.length) {
+      console.log(`[NSRVM] Starting ${toStart.length} services..`)
+      await Promise.all(toStart.map(serviceName => this.startService(this.config.services[serviceName])))
+    }
   }
 
   /**
